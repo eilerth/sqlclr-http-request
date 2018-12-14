@@ -1,7 +1,7 @@
 # sqlclr-http-request
 
 Make HTTP Requests/Query Web APIs from T-SQL via SQLCLR
-SQLCLR is a feature in Microsoft SQL Server that allows the creation of objects (stored procdures, functions, etc.) from compiled code written in one of the .NET languages, such as C#. This project uses the SQLCLR feature to create a versatile function that can make HTTP requests utilizing the .NET framework's HttpWebRequest class. Now from SQL one can connect to and pull data from web APIs without bringing in additional technologies such as SSIS or projects written in other programming languages. There are definitely instances where a tool such as SSIS is a much better option, but for many use cases this function can simplify architecture and make integrating data a much more rapid proecess.
+SQLCLR is a feature in Microsoft SQL Server that allows the creation of objects (stored procdures, functions, etc.) from compiled code written in one of the .NET languages, such as C#. This project uses the SQLCLR feature to create a versatile function that can make HTTP requests utilizing the .NET framework's [HttpWebRequest Class](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest). Now from SQL one can connect to and pull data from web APIs without bringing in additional technologies such as SSIS or projects written in other programming languages. There are definitely instances where a tool such as SSIS is a much better option, but for many use cases this function can simplify architecture and make integrating data a much more rapid proecess.
 
 I'm going to initially link to the article initially posted with this and complete more documentation later:
 http://www.sqlservercentral.com/articles/SQLCLR/177834/
@@ -35,60 +35,73 @@ If you're waiting for me or have any questions for me, bug me!
 ```
 
 - options (string, in XML format) - This allows you to specify several options to fine-tune the HTTP Request. They are passed as XML following this format:
-
+```
   <Options>
     <*option_name*>*option value*</*option_name*>
   </Options>
-  
-  Available options:
-    - security_protocol
+```
 
-      Pass a CSV of protocols from the [SecurityProtocolType Enum](https://docs.microsoft.com/en-us/dotnet/api/system.net.securityprotocoltype)
+#### Available options:
+- security_protocol
+
+  Pass a CSV of protocols from the [SecurityProtocolType Enum](https://docs.microsoft.com/en-us/dotnet/api/system.net.securityprotocoltype)
       
-        Example: '<security_protocol>Tls12,Tls11,Tls</security_protocol>'
+  Example: `<security_protocol>Tls12,Tls11,Tls</security_protocol>`
         
-      - timeout
-        Sets the [HttpWebRequest.Timeout Property](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest.timeout) as the number of milliseconds until the request times out
-        Example: '<timeout>60000</timeout>' is 60,000 milliseconds, which is 60 seconds (1 minute).
-      - auto_decompress
-        Sets the [HttpWebRequest.AutomaticDecompression Property](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest.automaticdecompression) to automatically decompress the response
-        Example: '<auto_decompress>true</auto_decompress>'
-      - convert_response_to_base64
-        Base64 encodes response. This is particularly useful if the response is a file rather than just text.
-        Example: '<convert_response_to_base64>true</convert_response_to_base64>
-        Note, in SQL Server you're able to then decode using something like 'CAST(@string AS XML).value(\'.\', \'VARBINARY(MAX)\')'
-      - debug
-        Includes an element in the Response XML with info for each step of the execution
-        Example: '<debug>true</debug>
+- timeout
+
+  Sets the [HttpWebRequest.Timeout Property](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest.timeout) as the number of milliseconds until the request times out
+  
+  Example: `<timeout>60000</timeout>`
+  
+- auto_decompress
+
+  Sets the [HttpWebRequest.AutomaticDecompression Property](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest.automaticdecompression) to automatically decompress the response
+
+  Example: `<auto_decompress>true</auto_decompress>`
+
+- convert_response_to_base64
+
+  Base64 encodes response. This is particularly useful if the response is a file rather than just text.
+
+  Example: `<convert_response_to_base64>true</convert_response_to_base64>`
+  
+  Note, in SQL Server you're able to then decode using something like 'CAST(@string AS XML).value(\'.\', \'VARBINARY(MAX)\')'
+  
+- debug
+  
+  Includes an element in the Response XML with info for each step of the execution
+  
+  Example: `<debug>true</debug>`
 
 ### Returned XML
 
 The result from this function is an XML document generated from the properties available in the [HttpWebResponse Class](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse). This is the structure of that XML.
 
 - Response - this is the root element
- - [CharacterSet](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.CharacterSet)
- - [ContentEncoding](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ContentEncoding)
- - [ContentLength](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ContentLength)
- - [ContentType](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ContentType)
- - HeadersCount - Count of [Headers](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Headers)
- - [IsFromCache](https://docs.microsoft.com/en-us/dotnet/api/system.net.webresponse.isfromcache)
- - [IsMutuallyAuthenticated](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.IsMutuallyAuthenticated)
- - [LastModified](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.LastModified)
- - [Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Method)
- - [ProtocolVersion](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ProtocolVersion)
- - [ResponseUri](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ResponseUri)
- - [StatusCode](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.StatusCode)
- - [Server](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Server)
- - StatusNumber - Number derived from [StatusCode](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.StatusCode)
- - [StatusDescription](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.StatusDescription)
- - [SupportsHeaders](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.SupportsHeaders)
- - [Headers](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Headers)
-   * Header - each header will get its own node here
-     - Name
-     - Values - a header can have multiple values in C#'s HttpWebResponse
-       - Value
- - Body - Content from the response
- - Debug - Log and info for each step
+  - [CharacterSet](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.CharacterSet)
+  - [ContentEncoding](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ContentEncoding)
+  - [ContentLength](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ContentLength)
+  - [ContentType](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ContentType)
+  - HeadersCount - Count of [Headers](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Headers)
+  - [IsFromCache](https://docs.microsoft.com/en-us/dotnet/api/system.net.webresponse.isfromcache)
+  - [IsMutuallyAuthenticated](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.IsMutuallyAuthenticated)
+  - [LastModified](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.LastModified)
+  - [Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Method)
+  - [ProtocolVersion](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ProtocolVersion)
+  - [ResponseUri](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ResponseUri)
+  - [StatusCode](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.StatusCode)
+  - [Server](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Server)
+  - StatusNumber - Number derived from [StatusCode](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.StatusCode)
+  - [StatusDescription](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.StatusDescription)
+  - [SupportsHeaders](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.SupportsHeaders)
+  - [Headers](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Headers)
+    * Header - each header will get its own node here
+      - Name
+      - Values - a header can have multiple values in C#'s HttpWebResponse
+        - Value
+  - Body - Content from the response
+  - Debug - Log and info for each step
 
 ### Examples
 
