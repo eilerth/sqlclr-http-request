@@ -1,12 +1,121 @@
 # sqlclr-http-request
 
 Make HTTP Requests/Query Web APIs from T-SQL via SQLCLR
-SQLCLR is a feature in Microsoft SQL Server that allows the creation of objects (stored procdures, functions, etc.) from compiled code written in one of the .NET languages, such as C#. This project uses the SQLCLR feature to create a versatile function that can make HTTP requests utilizing the .NET framework's HttpWebRequest class. Now from SQL one can connect to and pull data from web APIs without bringing in additional technologies such as SSIS or projects written in other programming languages. There are definitely instances where a tool such as SSIS is a much better option, but for many use cases this function can simplify architecture and make integrating data a much more rapid process.
+SQLCLR is a feature in Microsoft SQL Server that allows the creation of objects (stored procdures, functions, etc.) from compiled code written in one of the .NET languages, such as C#. This project uses the SQLCLR feature to create a versatile function that can make HTTP requests utilizing the .NET framework's HttpWebRequest class. Now from SQL one can connect to and pull data from web APIs without bringing in additional technologies such as SSIS or projects written in other programming languages. There are definitely instances where a tool such as SSIS is a much better option, but for many use cases this function can simplify architecture and make integrating data a much more rapid proecess.
 
 I'm going to initially link to the article initially posted with this and complete more documentation later:
 http://www.sqlservercentral.com/articles/SQLCLR/177834/
 
 If you're waiting for me or have any questions for me, bug me!
+
+## Usage/Examples
+
+### Input parameters
+
+- requestMethod (string) - Most often "GET" or "POST", but there are several others used for various purposes.
+
+- url (string) - The URL attempting to connect to, such as an API endpoint
+
+- parameters (string)
+
+  If a GET request, these will just get added into the query string. In that case you could just include them in the url parameter and pass NULL for parameters.
+  
+  Otherwise, these parameters will be converted to a byte array and added to the content of the HTTP request.
+  
+  Format of this parameter matches that of a URL query string where you have key=value pairs separated by "&":
+        param1=A&param2=B
+
+- headers (string, in XML format) - This allows you to set headers for the HTTP request. They are passed as XML following this format:
+
+  &lt;Headers&gt;
+    &lt;Header Name="MyHeader"&gt;My Header's Value&lt;/Header&gt;
+    &lt;Header Name="…"&gt;…&lt;/Header&gt;
+    &lt;Header Name="…"&gt;…&lt;/Header&gt;
+  &lt;/Headers&gt;
+
+- options (string, in XML format) - This allows you to specify several options to fine-tune the HTTP Request. They are passed as XML following this format:
+
+  &lt;Options&gt;
+    &lt;*option_name*&gt;*option value*&lt;/*option_name*&gt;
+  &lt;/Options&gt;
+  
+  Available options:
+    - security_protocol
+
+      Pass a CSV of protocols from the [SecurityProtocolType Enum](https://docs.microsoft.com/en-us/dotnet/api/system.net.securityprotocoltype)
+      
+        Example: '&lt;security_protocol&gt;Tls12,Tls11,Tls&lt;/security_protocol&gt;'
+        
+      - timeout
+        Sets the [HttpWebRequest.Timeout Property](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest.timeout) as the number of milliseconds until the request times out
+        Example: '&lt;timeout&gt;60000&lt;/timeout&gt;' is 60,000 milliseconds, which is 60 seconds (1 minute).
+      - auto_decompress
+        Sets the [HttpWebRequest.AutomaticDecompression Property](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest.automaticdecompression) to automatically decompress the response
+        Example: '&lt;auto_decompress&gt;true&lt;/auto_decompress&gt;'
+      - convert_response_to_base64
+        Base64 encodes response. This is particularly useful if the response is a file rather than just text.
+        Example: '&lt;convert_response_to_base64&gt;true&lt;/convert_response_to_base64&gt;
+        Note, in SQL Server you're able to then decode using something like 'CAST(@string AS XML).value(\'.\', \'VARBINARY(MAX)\')'
+      - debug
+        Includes an element in the Response XML with info for each step of the execution
+        Example: '&lt;debug&gt;true&lt;/debug&gt;
+
+### Returned XML
+
+The result from this function is an XML document generated from the properties available in the [HttpWebResponse Class](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse). This is the structure of that XML.
+
+- Response - this is the root element
+ - [CharacterSet](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.CharacterSet)
+ - [ContentEncoding](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ContentEncoding)
+ - [ContentLength](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ContentLength)
+ - [ContentType](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ContentType)
+ - HeadersCount - Count of [Headers](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Headers)
+ - [IsFromCache](https://docs.microsoft.com/en-us/dotnet/api/system.net.webresponse.isfromcache)
+ - [IsMutuallyAuthenticated](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.IsMutuallyAuthenticated)
+ - [LastModified](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.LastModified)
+ - [Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Method)
+ - [ProtocolVersion](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ProtocolVersion)
+ - [ResponseUri](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.ResponseUri)
+ - [StatusCode](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.StatusCode)
+ - [Server](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Server)
+ - StatusNumber - Number derived from [StatusCode](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.StatusCode)
+ - [StatusDescription](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.StatusDescription)
+ - [SupportsHeaders](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.SupportsHeaders)
+ - [Headers](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebresponse.Headers)
+   * Header - each header will get its own node here
+     - Name
+     - Values - a header can have multiple values in C#'s HttpWebResponse
+       - Value
+ - Body - Content from the response
+ - Debug - Log and info for each step
+
+### Examples
+
+Query stackoverflow API
+```
+SELECT 
+    B.*
+FROM OPENJSON
+    (
+        [dbo].[clr_http_request]
+            (
+                'GET', 'http://api.stackexchange.com/2.2/questions?site=stackoverflow', 
+                NULL /* parameters */, NULL /* headers */, NULL /* options */
+            ).value('Response[1]/Body[1]', 'NVARCHAR(MAX)')
+    ) WITH ([items] NVARCHAR(MAX) AS JSON) A
+CROSS APPLY OPENJSON(A.[items]) WITH 
+    (
+        [question_id] INT,
+        [title] NVARCHAR(MAX),
+        [tags] NVARCHAR(MAX) AS JSON,
+        [is_answered] BIT,
+        [view_count] INT,
+        [answer_count] INT,
+        [score] INT
+    ) B;
+```
+
+I'll update this section with more examples eventually. For now, please also refer to the original article for this function: http://www.sqlservercentral.com/articles/SQLCLR/177834/
 
 ## Deployment
 
@@ -56,7 +165,7 @@ RETURNS XML AS EXTERNAL NAME [ClrHttpRequest].[UserDefinedFunctions].[clr_http_r
 
 ### A quick test to confirm it works
 ```
-SELECT [dbo].[clr_http_request]('GET', 'https://github.com/eilerth/sqlclr-http-request/', NULL, NULL, '<security_protocol>Tls12</security_protocol>');
+SELECT [dbo].[clr_http_request]('GET', 'https://github.com/eilerth/sqlclr-http-request/', NULL, NULL, '&lt;Options&gt;&lt;security_protocol&gt;Tls12&lt;/security_protocol&gt;&lt;/Options&gt;');
 ```
 
 ## Should this be a feature shipped with SQL Server?
