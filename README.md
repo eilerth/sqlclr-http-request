@@ -9,7 +9,17 @@ http://www.sqlservercentral.com/articles/SQLCLR/177834/
 
 If you're waiting for me or have any questions for me, bug me!
 
-## Usage/Examples
+## Table of Contents
+- [Table of Contents](#table-of-contents)
+- [Usage and Examples](#usage-and-examples)
+  * [Input parameters](#input-parameters)
+  * [Returned XML](#returned-xml)
+  * [Examples](#examples)
+- [Deployment](#deployment)
+- [Should this be a native function in SQL Server?](#should-this-be-a-native-function-in-sql-server)
+- [License](#license)
+
+## Usage and Examples
 
 ### Input parameters
 
@@ -144,9 +154,9 @@ RECONFIGURE;
 GO
 ```
 
-### Copy ClrHttpRequest.dll to C:\ (or any preferred location, but update the following steps to reference it)
+### Copy [ClrHttpRequest.dll](https://github.com/eilerth/sqlclr-http-request/raw/master/ClrHttpRequest/bin/Debug/ClrHttpRequest.dll) to C:\ (or any preferred location, but update the following steps to reference it)
 
-#### *Note:* The rest of these steps are all included in Deployment.sql
+#### *Note:* The rest of these steps are all included in [Deployment.sql](https://github.com/eilerth/sqlclr-http-request/blob/master/ClrHttpRequest/Deployment.sql)
 
 ### In the [master] database...
 
@@ -183,7 +193,7 @@ RETURNS XML AS EXTERNAL NAME [ClrHttpRequest].[UserDefinedFunctions].[clr_http_r
 SELECT [dbo].[clr_http_request]('GET', 'https://github.com/eilerth/sqlclr-http-request/', NULL, NULL, '<Options><security_protocol>Tls12</security_protocol></Options>');
 ```
 
-## Should this be a feature shipped with SQL Server?
+## Should this be a native function in SQL Server?
 
 If you think so, you should vote for it here: https://feedback.azure.com/forums/908035-sql-server/suggestions/34429699-http-request-function
 
