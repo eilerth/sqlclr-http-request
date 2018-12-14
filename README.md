@@ -26,39 +26,40 @@ If you're waiting for me or have any questions for me, bug me!
         param1=A&param2=B
 
 - headers (string, in XML format) - This allows you to set headers for the HTTP request. They are passed as XML following this format:
-
-  &lt;Headers&gt;
-    &lt;Header Name="MyHeader"&gt;My Header's Value&lt;/Header&gt;
-    &lt;Header Name="…"&gt;…&lt;/Header&gt;
-    &lt;Header Name="…"&gt;…&lt;/Header&gt;
-  &lt;/Headers&gt;
+```
+  <Headers>
+    <Header Name="MyHeader">My Header's Value</Header>
+    <Header Name="…">…</Header>
+    <Header Name="…">…</Header>
+  </Headers>
+```
 
 - options (string, in XML format) - This allows you to specify several options to fine-tune the HTTP Request. They are passed as XML following this format:
 
-  &lt;Options&gt;
-    &lt;*option_name*&gt;*option value*&lt;/*option_name*&gt;
-  &lt;/Options&gt;
+  <Options>
+    <*option_name*>*option value*</*option_name*>
+  </Options>
   
   Available options:
     - security_protocol
 
       Pass a CSV of protocols from the [SecurityProtocolType Enum](https://docs.microsoft.com/en-us/dotnet/api/system.net.securityprotocoltype)
       
-        Example: '&lt;security_protocol&gt;Tls12,Tls11,Tls&lt;/security_protocol&gt;'
+        Example: '<security_protocol>Tls12,Tls11,Tls</security_protocol>'
         
       - timeout
         Sets the [HttpWebRequest.Timeout Property](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest.timeout) as the number of milliseconds until the request times out
-        Example: '&lt;timeout&gt;60000&lt;/timeout&gt;' is 60,000 milliseconds, which is 60 seconds (1 minute).
+        Example: '<timeout>60000</timeout>' is 60,000 milliseconds, which is 60 seconds (1 minute).
       - auto_decompress
         Sets the [HttpWebRequest.AutomaticDecompression Property](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest.automaticdecompression) to automatically decompress the response
-        Example: '&lt;auto_decompress&gt;true&lt;/auto_decompress&gt;'
+        Example: '<auto_decompress>true</auto_decompress>'
       - convert_response_to_base64
         Base64 encodes response. This is particularly useful if the response is a file rather than just text.
-        Example: '&lt;convert_response_to_base64&gt;true&lt;/convert_response_to_base64&gt;
+        Example: '<convert_response_to_base64>true</convert_response_to_base64>
         Note, in SQL Server you're able to then decode using something like 'CAST(@string AS XML).value(\'.\', \'VARBINARY(MAX)\')'
       - debug
         Includes an element in the Response XML with info for each step of the execution
-        Example: '&lt;debug&gt;true&lt;/debug&gt;
+        Example: '<debug>true</debug>
 
 ### Returned XML
 
@@ -165,7 +166,7 @@ RETURNS XML AS EXTERNAL NAME [ClrHttpRequest].[UserDefinedFunctions].[clr_http_r
 
 ### A quick test to confirm it works
 ```
-SELECT [dbo].[clr_http_request]('GET', 'https://github.com/eilerth/sqlclr-http-request/', NULL, NULL, '&lt;Options&gt;&lt;security_protocol&gt;Tls12&lt;/security_protocol&gt;&lt;/Options&gt;');
+SELECT [dbo].[clr_http_request]('GET', 'https://github.com/eilerth/sqlclr-http-request/', NULL, NULL, '<Options><security_protocol>Tls12</security_protocol></Options>');
 ```
 
 ## Should this be a feature shipped with SQL Server?
