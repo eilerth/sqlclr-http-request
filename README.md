@@ -129,7 +129,7 @@ CROSS APPLY OPENJSON(A.[items]) WITH
     ) B;
 ```
 
-I'll update this section with more examples eventually. For now, please also refer to the original article for this function: http://www.sqlservercentral.com/articles/SQLCLR/177834/
+This section will be updated with more examples eventually. For now, please also refer to the original article for this function: http://www.sqlservercentral.com/articles/SQLCLR/177834/
 
 ## Deployment
 
@@ -145,7 +145,7 @@ GO
 
 ### Copy ClrHttpRequest.dll to C:\ (or any preferred location, but update the following steps to reference it)
 
-### *Note:* The rest of these steps are all included in Deployment.sql
+#### *Note:* The rest of these steps are all included in Deployment.sql
 
 ### In the [master] database...
 
