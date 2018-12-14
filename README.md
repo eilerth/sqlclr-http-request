@@ -1,6 +1,7 @@
 # sqlclr-http-request
 
 Make HTTP Requests/Query Web APIs from T-SQL via SQLCLR
+
 SQLCLR is a feature in Microsoft SQL Server that allows the creation of objects (stored procdures, functions, etc.) from compiled code written in one of the .NET languages, such as C#. This project uses the SQLCLR feature to create a versatile function that can make HTTP requests utilizing the .NET framework's [HttpWebRequest Class](https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest). Now from SQL one can connect to and pull data from web APIs without bringing in additional technologies such as SSIS or projects written in other programming languages. There are definitely instances where a tool such as SSIS is a much better option, but for many use cases this function can simplify architecture and make integrating data a much more rapid proecess.
 
 Also, more information can be found in the article initially posted with this function:
