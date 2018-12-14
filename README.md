@@ -1,7 +1,6 @@
 # sqlclr-http-request
 
 Make HTTP Requests/Query Web APIs from T-SQL via SQLCLR
-
 SQLCLR is a feature in Microsoft SQL Server that allows the creation of objects (stored procdures, functions, etc.) from compiled code written in one of the .NET languages, such as C#. This project uses the SQLCLR feature to create a versatile function that can make HTTP requests utilizing the .NET framework's HttpWebRequest class. Now from SQL one can connect to and pull data from web APIs without bringing in additional technologies such as SSIS or projects written in other programming languages. There are definitely instances where a tool such as SSIS is a much better option, but for many use cases this function can simplify architecture and make integrating data a much more rapid proecess.
 
 I'm going to initially link to the article initially posted with this and complete more documentation later:
@@ -21,11 +20,13 @@ RECONFIGURE;
 GO
 ```
 
+### Copy ClrHttpRequest.dll to C:\ (or any preferred location, but update the following steps to reference it)
+
 ### *Note:* The rest of these steps are all included in Deployment.sql
 
 ### In the [master] database...
 
-Create an asymmetric key from the compiled dll
+Create an asymmetric key from the dll
 ```
 CREATE ASYMMETRIC KEY [key_clr_http_request] FROM EXECUTABLE FILE = 'C:\ClrHttpRequest.dll';
 ```
@@ -57,6 +58,10 @@ RETURNS XML AS EXTERNAL NAME [ClrHttpRequest].[UserDefinedFunctions].[clr_http_r
 ```
 SELECT [dbo].[clr_http_request]('GET', 'https://github.com/eilerth/sqlclr-http-request/', NULL, NULL, '<security_protocol>Tls12</security_protocol>');
 ```
+
+## Should this be a feature shipped with SQL Server?
+
+If you think so, you should vote for it here: https://feedback.azure.com/forums/908035-sql-server/suggestions/34429699-http-request-function
 
 ## License
 
