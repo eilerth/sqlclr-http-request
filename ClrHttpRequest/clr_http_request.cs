@@ -157,7 +157,7 @@ public partial class UserDefinedFunctions
             if (requestMethod.ToUpper() != "GET" && !string.IsNullOrWhiteSpace(parameters))
             {
                 // Convert to byte array
-                var parameterData = Encoding.ASCII.GetBytes(parameters);
+                var parameterData = Encoding.UTF8.GetBytes(parameters);
 
                 // Set content info
                 if (!contentLengthSetFromHeaders)
